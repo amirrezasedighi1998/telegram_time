@@ -77,11 +77,11 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
     except Exception as e:
         logger.error(f"❌ خطا: {e}")
 
-def main():
+async def main():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(MessageHandler(filters.ChatType.CHANNEL & filters.TEXT, handle_channel_post))
     logger.info("🤖 ربات فعال شد.")
-    app.run_polling()
+    await app.run_polling()
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
