@@ -8,7 +8,7 @@ services:
     startCommand: python main.py
     envVars:
       - key: BOT_TOKEN
-        value: YOUR_BOT_TOKEN
+        value: 7837124009:AAGy5C13fDEsI_C8SCWOLBvK72yk1JYx_zk
       - key: CHANNEL_ID
         value: -1002798561239
       - key: CHANNEL_USERNAME
