@@ -4,7 +4,11 @@ services:
     env: python
     plan: free
     region: frankfurt
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      rm -rf .venv
+      rm -rf __pycache__
+      pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: python main.py
     envVars:
       - key: BOT_TOKEN
