@@ -1,4 +1,3 @@
-# main.py
 import logging
 import re
 from datetime import datetime, timedelta
@@ -10,8 +9,8 @@ from telegram import Update
 from telegram.ext import Application, MessageHandler, ContextTypes, filters
 
 TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL_ID = int(os.getenv("CHANNEL_ID"))  # مثل -1002798561239
-CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME")  # بدون @
+CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
+CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME")
 TIME_ZONE = "Asia/Tehran"
 REPLY_TEXT = "⏰ فقط 30 دقیقه باقی مانده!"
 
@@ -77,16 +76,11 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
     except Exception as e:
         logger.error(f"❌ خطا: {e}")
 
-async def main():
+def main():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(MessageHandler(filters.ChatType.CHANNEL & filters.TEXT, handle_channel_post))
     logger.info("🤖 ربات فعال شد.")
-    await app.run_polling()
+    app.run_polling()
 
 if __name__ == '__main__':
-    import sys
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    main()
