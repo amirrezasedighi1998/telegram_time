@@ -33,6 +33,18 @@ def extract_datetime(text):
             return datetime(year, month, day, hour, minute)
     return None
 
+async def schedule_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, delay_seconds: int):
+    await asyncio.sleep(delay_seconds)
+    link = f"https://t.me/{CHANNEL_USERNAME}/{message_id}"
+    reply_text = f"{REPLY_TEXT}\n\n📌 [مشاهده پیام مرتبط]({link})"
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=reply_text,
+        parse_mode="Markdown",
+        reply_to_message_id=message_id
+    )
+    logger.info("✅ پیام با موفقیت ارسال شد.")
+
 async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.channel_post
     if message.chat.id != CHANNEL_ID:
@@ -59,19 +71,10 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         logger.info(f"⏳ پیام زمان‌بندی شده در {delay_seconds} ثانیه دیگه ارسال میشه")
 
-        await asyncio.sleep(delay_seconds)
-
-        link = f"https://t.me/{CHANNEL_USERNAME}/{message.message_id}"
-        reply_text = f"{REPLY_TEXT}\n\n📌 [مشاهده پیام مرتبط]({link})"
-
-        await context.bot.send_message(
-            chat_id=CHANNEL_ID,
-            text=reply_text,
-            parse_mode="Markdown",
-            reply_to_message_id=message.message_id
+        # ایجاد تسک جدا برای زمان‌بندی پیام
+        context.application.create_task(
+            schedule_message(context, CHANNEL_ID, message.message_id, delay_seconds)
         )
-
-        logger.info("✅ پیام با موفقیت ارسال شد.")
 
     except Exception as e:
         logger.error(f"❌ خطا: {e}")
