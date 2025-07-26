@@ -84,9 +84,9 @@ async def main():
     await app.run_polling()
 
 if __name__ == '__main__':
-    try:
-        loop = asyncio.get_event_loop()
-        loop.create_task(main())
-        loop.run_forever()
-    except KeyboardInterrupt:
-        logger.info("👋 ربات متوقف شد.")
+    import sys
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
