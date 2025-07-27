@@ -12,7 +12,7 @@ TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME")
 TIME_ZONE = "Asia/Tehran"
-REPLY_TEXT = "⏰ فقط 30 دقیقه باقی مانده!"
+REPLY_TEXT = "Only 30 minutes left."
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def extract_datetime(text):
 async def schedule_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, delay_seconds: int):
     await asyncio.sleep(delay_seconds)
     link = f"https://t.me/{CHANNEL_USERNAME}/{message_id}"
-    reply_text = f"{REPLY_TEXT}\n\n📌 [مشاهده پیام مرتبط]({link})"
+    reply_text = REPLY_TEXT
     await context.bot.send_message(
         chat_id=chat_id,
         text=reply_text,
