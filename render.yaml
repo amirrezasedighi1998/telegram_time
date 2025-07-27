@@ -14,6 +14,6 @@ services:
       - key: BOT_TOKEN
         value: 7837124009:AAGy5C13fDEsI_C8SCWOLBvK72yk1JYx_zk
       - key: CHANNEL_ID
-        value: -1002798561239
+        value: -1002722641795
       - key: CHANNEL_USERNAME
-        value: randomirani
+        value: Portals_freebies
