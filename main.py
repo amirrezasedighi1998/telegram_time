@@ -48,8 +48,9 @@ def extract_datetime(text):
                     else:
                         year, month, day, hour, minute = groups
 
-                    dt_utc = datetime(year, month, day, hour, minute)
-                    return pytz.utc.localize(dt_utc).astimezone(pytz.timezone("Asia/Tehran"))
+                    # فقط datetime نازایف بساز (بدون منطقه زمانی)
+                    dt = datetime(year, month, day, hour, minute)
+                    return dt
 
     # اگر کلیدواژه پیدا نشد یا تاریخ پیدا نشد
     return None
