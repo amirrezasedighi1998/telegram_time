@@ -18,12 +18,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def extract_datetime(text):
+    cleaned_text = re.sub(r'[^\x00-\x7F\u0600-\u06FF\u0400-\u04FF\s\d:/.\-]', '', text)
     patterns = [
-        r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',              # 28.07.2025 19:00
-        r'(\d{4})[./-](\d{1,2})[./-](\d{1,2})\s+(\d{1,2}):(\d{2})',   # 2025-07-28 19:00
+        r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',               # 28.07.2025 19:00
+        r'(\d{4})[./-](\d{2})[./-](\d{2})\s+(\d{2}):(\d{2})',         # 2025-07-28 19:00
     ]
     for pattern in patterns:
-        match = re.search(pattern, text)
+        match = re.search(pattern, cleaned_text)
         if match:
             groups = list(map(int, match.groups()))
             if pattern.startswith(r'(\d{2})'):
