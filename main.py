@@ -18,20 +18,40 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def extract_datetime(text):
-    cleaned_text = re.sub(r'[^\x00-\x7F\u0600-\u06FF\u0400-\u04FF\s\d:/.\-]', '', text)
-    patterns = [
-        r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',               # 28.07.2025 19:00
-        r'(\d{4})[./-](\d{2})[./-](\d{2})\s+(\d{2}):(\d{2})',         # 2025-07-28 19:00
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, cleaned_text)
-        if match:
-            groups = list(map(int, match.groups()))
-            if pattern.startswith(r'(\d{2})'):
-                day, month, year, hour, minute = groups
-            else:
-                year, month, day, hour, minute = groups
-            return datetime(year, month, day, hour, minute)
+    # تعریف کلیدواژه‌های قابل قبول برای یافتن تاریخ
+    keywords = ["Deadline", "Крайний срок"]
+
+    # جستجو برای هر کلیدواژه و استخراج تاریخ بعد از آن
+    for keyword in keywords:
+        # ساختن regex برای پیدا کردن کلیدواژه و گرفتن متن بعدش (تا 50 کاراکتر)
+        pattern_keyword = re.compile(rf'{keyword}[:\s]*([\s\S]{{0,50}})', re.IGNORECASE)
+        match_keyword = pattern_keyword.search(text)
+        if match_keyword:
+            # متن بعد از کلیدواژه
+            following_text = match_keyword.group(1)
+
+            # حذف ایموجی‌ها و کاراکترهای غیرضروری
+            cleaned_text = re.sub(r'[^\x00-\x7F\u0600-\u06FF\u0400-\u04FF\s\d:/.\-]', '', following_text)
+
+            # الگوهای تاریخ-زمان
+            patterns = [
+                r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',
+                r'(\d{4})[./-](\d{2})[./-](\d{2})\s+(\d{2}):(\d{2})',
+            ]
+
+            for pattern in patterns:
+                match_date = re.search(pattern, cleaned_text)
+                if match_date:
+                    groups = list(map(int, match_date.groups()))
+                    if pattern.startswith(r'(\d{2})'):
+                        day, month, year, hour, minute = groups
+                    else:
+                        year, month, day, hour, minute = groups
+
+                    dt_utc = datetime(year, month, day, hour, minute)
+                    return pytz.utc.localize(dt_utc).astimezone(pytz.timezone("Asia/Tehran"))
+
+    # اگر کلیدواژه پیدا نشد یا تاریخ پیدا نشد
     return None
 
 
