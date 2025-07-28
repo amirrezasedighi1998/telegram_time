@@ -2,78 +2,65 @@ import logging
 import re
 from datetime import datetime, timedelta
 import pytz
-import asyncio
 import os
 
 from telegram import Update
 from telegram.ext import Application, MessageHandler, ContextTypes, filters
 
+
+# تنظیمات
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME")
 TIME_ZONE = "Asia/Tehran"
 REPLY_TEXT = "Only 30 minutes left."
 
+# لاگ‌گیری
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def extract_datetime(text):
-    # تعریف کلیدواژه‌های قابل قبول برای یافتن تاریخ
-    keywords = ["Deadline", "Крайний срок"]
+    # دنبال تمام تاریخ/زمان‌ها بگرد و اولین تطابق رو برگردون
+    patterns = [
+        r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',        # dd.mm.yyyy hh:mm
+        r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})\s+UTC',  # dd.mm.yyyy hh:mm UTC
+        r'(\d{4})[./-](\d{2})[./-](\d{2})\s+(\d{2}):(\d{2})',  # yyyy-mm-dd hh:mm
+    ]
 
-    # جستجو برای هر کلیدواژه و استخراج تاریخ بعد از آن
-    for keyword in keywords:
-        # ساختن regex برای پیدا کردن کلیدواژه و گرفتن متن بعدش (تا 50 کاراکتر)
-        pattern_keyword = re.compile(rf'{keyword}[:\s]*([\s\S]{{0,50}})', re.IGNORECASE)
-        match_keyword = pattern_keyword.search(text)
-        if match_keyword:
-            # متن بعد از کلیدواژه
-            following_text = match_keyword.group(1)
+    for pattern in patterns:
+        matches = re.findall(pattern, text)
+        for match in matches:
+            try:
+                nums = list(map(int, match))
+                if pattern.startswith(r'(\d{2})'):
+                    day, month, year, hour, minute = nums
+                else:
+                    year, month, day, hour, minute = nums
+                return datetime(year, month, day, hour, minute)
+            except ValueError:
+                continue
 
-            # حذف ایموجی‌ها و کاراکترهای غیرضروری
-            cleaned_text = re.sub(r'[^\x00-\x7F\u0600-\u06FF\u0400-\u04FF\s\d:/.\-]', '', following_text)
-
-            # الگوهای تاریخ-زمان
-            patterns = [
-                r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',
-                r'(\d{4})[./-](\d{2})[./-](\d{2})\s+(\d{2}):(\d{2})',
-            ]
-
-            for pattern in patterns:
-                match_date = re.search(pattern, cleaned_text)
-                if match_date:
-                    groups = list(map(int, match_date.groups()))
-                    if pattern.startswith(r'(\d{2})'):
-                        day, month, year, hour, minute = groups
-                    else:
-                        year, month, day, hour, minute = groups
-
-                    # فقط datetime نازایف بساز (بدون منطقه زمانی)
-                    dt = datetime(year, month, day, hour, minute)
-                    return dt
-
-    # اگر کلیدواژه پیدا نشد یا تاریخ پیدا نشد
     return None
 
 
 async def schedule_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, delay_seconds: int):
     await asyncio.sleep(delay_seconds)
-    link = f"https://t.me/{CHANNEL_USERNAME}/{message_id}"
-    reply_text = REPLY_TEXT
     await context.bot.send_message(
         chat_id=chat_id,
-        text=reply_text,
+        text=REPLY_TEXT,
         parse_mode="Markdown",
         reply_to_message_id=message_id
     )
     logger.info("✅ پیام با موفقیت ارسال شد.")
+
 
 async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.channel_post
     if message.chat.id != CHANNEL_ID:
         return
 
-    if not message.text or "Deadline:" not in message.text:
+    if not message.text:
         return
 
     event_datetime = extract_datetime(message.text)
@@ -94,7 +81,6 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         logger.info(f"⏳ پیام زمان‌بندی شده در {delay_seconds} ثانیه دیگه ارسال میشه")
 
-        # ایجاد تسک جدا برای زمان‌بندی پیام
         context.application.create_task(
             schedule_message(context, CHANNEL_ID, message.message_id, delay_seconds)
         )
@@ -102,11 +88,13 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
     except Exception as e:
         logger.error(f"❌ خطا: {e}")
 
+
 def main():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(MessageHandler(filters.ChatType.CHANNEL & filters.TEXT, handle_channel_post))
     logger.info("🤖 ربات فعال شد.")
     app.run_polling()
+
 
 if __name__ == '__main__':
     main()
