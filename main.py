@@ -19,14 +19,14 @@ logger = logging.getLogger(__name__)
 
 def extract_datetime(text):
     patterns = [
-        r'Deadline:\s*(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',
-        r'Deadline:\s*(\d{4})[./-](\d{1,2})[./-](\d{1,2})\s+(\d{1,2}):(\d{2})',
+        r'\s*(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',
+        r'\s*(\d{4})[./-](\d{1,2})[./-](\d{1,2})\s+(\d{1,2}):(\d{2})',
     ]
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:
             groups = list(map(int, match.groups()))
-            if pattern.startswith(r'Deadline:\s*(\d{2})'):
+            if pattern.startswith(r'\s*(\d{2})'):
                 day, month, year, hour, minute = groups
             else:
                 year, month, day, hour, minute = groups
