@@ -19,19 +19,20 @@ logger = logging.getLogger(__name__)
 
 def extract_datetime(text):
     patterns = [
-        r'\s*(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',
-        r'\s*(\d{4})[./-](\d{1,2})[./-](\d{1,2})\s+(\d{1,2}):(\d{2})',
+        r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',              # 28.07.2025 19:00
+        r'(\d{4})[./-](\d{1,2})[./-](\d{1,2})\s+(\d{1,2}):(\d{2})',   # 2025-07-28 19:00
     ]
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:
             groups = list(map(int, match.groups()))
-            if pattern.startswith(r'\s*(\d{2})'):
+            if pattern.startswith(r'(\d{2})'):
                 day, month, year, hour, minute = groups
             else:
                 year, month, day, hour, minute = groups
             return datetime(year, month, day, hour, minute)
     return None
+
 
 async def schedule_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, delay_seconds: int):
     await asyncio.sleep(delay_seconds)
