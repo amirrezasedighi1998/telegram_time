@@ -21,33 +21,27 @@ logger = logging.getLogger(__name__)
 
 # زمان‌بندی
 scheduler = AsyncIOScheduler()
-scheduler.start()
 
-# خواندن تسک‌های ذخیره‌شده
 def load_tasks():
     if not os.path.exists(TASKS_FILE):
         return []
     with open(TASKS_FILE, "r") as f:
         return json.load(f)
 
-# ذخیره تسک‌ها
 def save_tasks(tasks):
     with open(TASKS_FILE, "w") as f:
         json.dump(tasks, f)
 
-# اضافه کردن تسک جدید
 def add_task(task):
     tasks = load_tasks()
     tasks.append(task)
     save_tasks(tasks)
 
-# حذف تسک بعد از اجرا
 def remove_task(message_id):
     tasks = load_tasks()
     tasks = [t for t in tasks if t["message_id"] != message_id]
     save_tasks(tasks)
 
-# تشخیص تاریخ از متن
 def extract_datetime(text):
     patterns = [
         r'(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})',
@@ -68,7 +62,6 @@ def extract_datetime(text):
                 continue
     return None
 
-# ارسال پیام
 async def send_scheduled_message(chat_id, message_id, context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_message(
@@ -82,7 +75,6 @@ async def send_scheduled_message(chat_id, message_id, context: ContextTypes.DEFA
     except Exception as e:
         logger.error(f"❌ خطا در ارسال پیام زمان‌بندی‌شده: {e}")
 
-# پردازش پیام دریافتی
 async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.channel_post
     if message.chat.id != CHANNEL_ID or not message.text:
@@ -119,8 +111,8 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
         "scheduled_time": scheduled_time.isoformat()
     })
 
-# بارگذاری تسک‌ها از فایل هنگام شروع برنامه
-async def load_existing_tasks(application):
+async def post_init(application: Application):
+    scheduler.start()
     tz = pytz.timezone(TIME_ZONE)
     now = datetime.now(tz)
     for task in load_tasks():
@@ -134,14 +126,11 @@ async def load_existing_tasks(application):
             )
             logger.info(f"🔄 تسک برای پیام {task['message_id']} بازیابی شد.")
 
-# شروع برنامه
 def main():
-    app = Application.builder().token(TOKEN).build()
+    app = Application.builder().token(TOKEN).post_init(post_init).build()
     app.add_handler(MessageHandler(filters.ChatType.CHANNEL & filters.TEXT, handle_channel_post))
-    app.post_init(load_existing_tasks)
     logger.info("🤖 ربات فعال شد.")
     app.run_polling()
-
 
 if __name__ == '__main__':
     main()
