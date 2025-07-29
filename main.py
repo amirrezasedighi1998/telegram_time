@@ -3,7 +3,6 @@ import re
 import json
 import os
 from datetime import datetime, timedelta
-import pytz
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telegram import Update
 from telegram.ext import Application, MessageHandler, ContextTypes, filters
@@ -11,7 +10,6 @@ from telegram.ext import Application, MessageHandler, ContextTypes, filters
 # تنظیمات
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
-TIME_ZONE = "Asia/Tehran"
 REPLY_TEXT = "Only 30 minutes left."
 TASKS_FILE = "tasks.json"
 
@@ -87,9 +85,7 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.info("⛔️ تاریخ پیدا نشد.")
         return
 
-    tz = pytz.timezone(TIME_ZONE)
-    now = datetime.now(tz)
-    event_datetime = tz.localize(event_datetime)
+    now = datetime.now()
     scheduled_time = event_datetime + timedelta(hours=3)
 
     delay_seconds = int((scheduled_time - now).total_seconds())
@@ -113,8 +109,7 @@ async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def post_init(application: Application):
     scheduler.start()
-    tz = pytz.timezone(TIME_ZONE)
-    now = datetime.now(tz)
+    now = datetime.now()
     for task in load_tasks():
         run_time = datetime.fromisoformat(task["scheduled_time"])
         if run_time > now:
