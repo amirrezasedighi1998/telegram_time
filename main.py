@@ -75,7 +75,9 @@ async def send_scheduled_message(chat_id, message_id, context: ContextTypes.DEFA
 
 async def handle_channel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.channel_post
-    if message.chat.id != CHANNEL_ID or not message.text:
+    if not message or not message.text or not message.chat:
+        return
+    if message.chat.id != CHANNEL_ID:
         return
 
     logger.info(f"📩 پیام دریافت‌شده: {message.text}")
