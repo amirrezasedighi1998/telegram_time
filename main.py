@@ -7,7 +7,28 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telegram import Update
 from telegram.ext import Application, MessageHandler, ContextTypes, filters
 import pytz
+#...................................................
+from flask import Flask
+from threading import Thread
 
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is alive!"
+
+def run():
+    # سرور Flask روی پورت 8080 اجرا می‌شود
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
+# صدا زدن تابع قبل از اجرای ربات
+keep_alive()
+
+#...................................................
 # تنظیمات
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))

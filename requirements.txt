@@ -2,3 +2,4 @@ python-telegram-bot==21.1
 urllib3==1.26.18
 pytz
 APScheduler
+Flask==3.1.2
